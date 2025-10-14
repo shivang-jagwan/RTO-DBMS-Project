@@ -10,7 +10,13 @@ async function getVehicles(): Promise<Vehicle[]> {
     model,
     color,
     status,
-    driver:owner ( name )
+    driver:ownerdriverid (
+      driverid,
+      name,
+      contact,
+      phonenumber,
+      address
+    )
   `);
 
   if (error) {

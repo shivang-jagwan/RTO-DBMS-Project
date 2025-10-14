@@ -4,8 +4,11 @@ export type Owner = {
 }
 
 export type Driver = {
-  id: string;
+  driverid: string;
   name: string;
+  contact?: string;
+  phonenumber?: string;
+  address?: string;
 }
 
 export type Vehicle = {
