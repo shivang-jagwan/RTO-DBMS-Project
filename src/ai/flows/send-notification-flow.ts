@@ -9,10 +9,9 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import twilio from 'twilio';
-import { defineFlow, run } from 'genkit';
 import 'dotenv/config';
 
-export const ViolationNotificationInputSchema = z.object({
+const ViolationNotificationInputSchema = z.object({
   violationid: z.string().describe('The ID of the violation.'),
   regno: z.string().describe("The vehicle's registration number."),
   violationtype: z.string().describe('The type of violation.'),
@@ -34,7 +33,7 @@ if (!accountSid || !authToken || !twilioPhoneNumber || !recipientPhoneNumber) {
 
 const twilioClient = twilio(accountSid, authToken);
 
-export const sendNotificationFlow = ai.defineFlow(
+const sendNotificationFlow = ai.defineFlow(
   {
     name: 'sendNotificationFlow',
     inputSchema: ViolationNotificationInputSchema,
