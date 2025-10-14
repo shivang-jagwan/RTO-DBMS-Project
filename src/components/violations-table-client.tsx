@@ -15,6 +15,7 @@ import type { Violation } from '@/lib/types'
 import { useToast } from '@/hooks/use-toast'
 import { createClient } from '@/lib/supabase/client'
 import { format } from 'date-fns'
+import { sendNotification, ViolationNotificationInput } from '@/ai/flows/send-notification-flow'
 
 interface ViolationsTableClientProps {
   initialViolations: Violation[]
@@ -22,6 +23,7 @@ interface ViolationsTableClientProps {
 
 export function ViolationsTableClient({ initialViolations }: ViolationsTableClientProps) {
   const [violations, setViolations] = useState(initialViolations)
+  const [sendingNotificationId, setSendingNotificationId] = useState<string | null>(null);
   const { toast } = useToast()
   const supabase = createClient()
 
@@ -40,9 +42,39 @@ export function ViolationsTableClient({ initialViolations }: ViolationsTableClie
     }
   }
 
-  const handleSendNotification = (violationId: string) => {
-    console.log(`Sending notification for violation ${violationId}`);
-    toast({ title: 'Notification Sent', description: `A reminder has been sent for violation ID: ${violationId}` })
+  const handleSendNotification = async (violation: Violation) => {
+    if (!violation.vehicle) {
+      toast({ variant: 'destructive', title: 'Error', description: 'Vehicle information is missing.' })
+      return;
+    }
+    
+    setSendingNotificationId(violation.violationid);
+
+    const notificationData: ViolationNotificationInput = {
+      violationid: violation.violationid,
+      regno: violation.vehicle.regno,
+      violationtype: violation.violationtype,
+      fineamount: violation.fineamount,
+      occurdate: violation.occurdate,
+    };
+
+    try {
+      const result = await sendNotification(notificationData);
+      if (result.success) {
+        toast({ title: 'Notification Sent', description: "Notification sent to your number (prototype)." });
+      } else {
+        throw new Error(result.message);
+      }
+    } catch (error: any) {
+      console.error(`Sending notification for violation ${violation.violationid} failed:`, error);
+      toast({ 
+        variant: 'destructive', 
+        title: 'Notification Failed', 
+        description: error.message || `Could not send notification for violation ID: ${violation.violationid}` 
+      });
+    } finally {
+      setSendingNotificationId(null);
+    }
   }
 
   return (
@@ -77,9 +109,18 @@ export function ViolationsTableClient({ initialViolations }: ViolationsTableClie
               <TableCell className="text-right">
                 <div className="flex gap-2 justify-end">
                   {violation.paymentstatus === 'Unpaid' && (
-                    <Button variant="outline" size="sm" onClick={() => handleMarkAsPaid(violation.violationid)}>Mark as Paid</Button>
+                    <>
+                      <Button variant="outline" size="sm" onClick={() => handleMarkAsPaid(violation.violationid)}>Mark as Paid</Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => handleSendNotification(violation)}
+                        disabled={sendingNotificationId === violation.violationid}
+                      >
+                        {sendingNotificationId === violation.violationid ? 'Sending...' : 'Send Notification'}
+                      </Button>
+                    </>
                   )}
-                  <Button variant="ghost" size="sm" onClick={() => handleSendNotification(violation.violationid)}>Send Notification</Button>
                 </div>
               </TableCell>
             </TableRow>
