@@ -35,3 +35,10 @@ export type ChartData = {
   paid: number;
   unpaid: number;
 };
+
+export type TopOffender = {
+  driverid: string;
+  name: string;
+  contact: string;
+  violation_count: number;
+};
