@@ -1,3 +1,4 @@
+// This file is no longer used for core functionality but is kept for reference or future testing needs.
 import type { Vehicle, Violation, DashboardStats, ChartData } from './types';
 
 export const MOCK_VEHICLES: Vehicle[] = [

@@ -1,12 +1,27 @@
 import { createClient } from '@/lib/supabase/server'
-import { MOCK_VIOLATIONS } from '@/lib/mock-data'
 import { ViolationsTableClient } from '@/components/violations-table-client'
 import type { Violation } from '@/lib/types'
 
 async function getViolations(): Promise<Violation[]> {
-  // In a real application, fetch from Supabase.
-  // For now, we use mock data.
-  return MOCK_VIOLATIONS;
+  const supabase = createClient()
+  const { data, error } = await supabase.from('violation').select(`
+    *,
+    driver ( name )
+  `)
+  if (error) {
+    console.error('Error fetching violations', error)
+    return []
+  }
+
+  return data.map((v: any) => ({
+    id: v.id,
+    vehicle_reg_no: v.vehicle_reg_no,
+    driver_name: v.driver.name,
+    violation_type: v.violation_type,
+    fine: v.fine,
+    status: v.status,
+    date: v.date,
+  })) as Violation[]
 }
 
 export default async function ViolationsPage() {

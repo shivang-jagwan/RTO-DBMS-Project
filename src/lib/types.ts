@@ -1,3 +1,13 @@
+export type Owner = {
+  id: string;
+  name: string;
+}
+
+export type Driver = {
+  id: string;
+  name: string;
+}
+
 export type Vehicle = {
   id: string;
   reg_no: string;

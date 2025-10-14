@@ -20,27 +20,48 @@ import {
 } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
 import type { Vehicle, Violation } from '@/lib/types'
-import { MOCK_VIOLATIONS } from '@/lib/mock-data'
-import { useAuth } from '@/hooks/use-auth'
+import { createClient } from '@/lib/supabase/client'
+import { Skeleton } from './ui/skeleton'
 
 interface VehiclesTableClientProps {
-  vehicles: Vehicle[]
+  initialVehicles: Vehicle[]
 }
 
-export function VehiclesTableClient({ vehicles }: VehiclesTableClientProps) {
-  const { isDemoMode } = useAuth()
+export function VehiclesTableClient({ initialVehicles }: VehiclesTableClientProps) {
+  const [vehicles, setVehicles] = useState<Vehicle[]>(initialVehicles)
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null)
   const [vehicleViolations, setVehicleViolations] = useState<Violation[]>([])
+  const [loadingViolations, setLoadingViolations] = useState(false)
+  const supabase = createClient()
 
-  const handleViewDetails = (vehicle: Vehicle) => {
+  const handleViewDetails = async (vehicle: Vehicle) => {
     setSelectedVehicle(vehicle)
-    if (isDemoMode) {
-      setVehicleViolations(MOCK_VIOLATIONS.filter(v => v.vehicle_reg_no === vehicle.reg_no))
+    setLoadingViolations(true)
+    
+    const { data, error } = await supabase
+      .from('violation')
+      .select(`
+        *,
+        driver ( name )
+      `)
+      .eq('vehicle_reg_no', vehicle.reg_no);
+
+    if (error) {
+      console.error("Error fetching vehicle violations:", error)
+      setVehicleViolations([])
     } else {
-      // In a real app, fetch violations for the vehicle
-      // For now, we'll use mock data as a fallback
-      setVehicleViolations(MOCK_VIOLATIONS.filter(v => v.vehicle_reg_no === vehicle.reg_no))
+      const violationsData = data.map((v: any) => ({
+        id: v.id,
+        vehicle_reg_no: v.vehicle_reg_no,
+        driver_name: v.driver.name,
+        violation_type: v.violation_type,
+        fine: v.fine,
+        status: v.status,
+        date: v.date,
+      })) as Violation[]
+      setVehicleViolations(violationsData)
     }
+    setLoadingViolations(false)
   }
 
   return (
@@ -80,34 +101,42 @@ export function VehiclesTableClient({ vehicles }: VehiclesTableClientProps) {
                         </DialogDescription>
                       </DialogHeader>
                       <div className="max-h-[60vh] overflow-y-auto">
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead>Violation</TableHead>
-                              <TableHead>Fine</TableHead>
-                              <TableHead>Date</TableHead>
-                              <TableHead>Status</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {vehicleViolations.length > 0 ? (
-                              vehicleViolations.map(v => (
-                                <TableRow key={v.id}>
-                                  <TableCell>{v.violation_type}</TableCell>
-                                  <TableCell>₹{v.fine}</TableCell>
-                                  <TableCell>{new Date(v.date).toLocaleDateString()}</TableCell>
-                                  <TableCell>
-                                    <Badge variant={v.status === 'Paid' ? 'secondary' : 'destructive'}>{v.status}</Badge>
-                                  </TableCell>
-                                </TableRow>
-                              ))
-                            ) : (
+                        {loadingViolations ? (
+                          <div className="space-y-2">
+                            <Skeleton className="h-10 w-full" />
+                            <Skeleton className="h-10 w-full" />
+                            <Skeleton className="h-10 w-full" />
+                          </div>
+                        ) : (
+                          <Table>
+                            <TableHeader>
                               <TableRow>
-                                <TableCell colSpan={4} className="text-center">No violations found.</TableCell>
+                                <TableHead>Violation</TableHead>
+                                <TableHead>Fine</TableHead>
+                                <TableHead>Date</TableHead>
+                                <TableHead>Status</TableHead>
                               </TableRow>
-                            )}
-                          </TableBody>
-                        </Table>
+                            </TableHeader>
+                            <TableBody>
+                              {vehicleViolations.length > 0 ? (
+                                vehicleViolations.map(v => (
+                                  <TableRow key={v.id}>
+                                    <TableCell>{v.violation_type}</TableCell>
+                                    <TableCell>₹{v.fine}</TableCell>
+                                    <TableCell>{new Date(v.date).toLocaleDateString()}</TableCell>
+                                    <TableCell>
+                                      <Badge variant={v.status === 'Paid' ? 'secondary' : 'destructive'}>{v.status}</Badge>
+                                    </TableCell>
+                                  </TableRow>
+                                ))
+                              ) : (
+                                <TableRow>
+                                  <TableCell colSpan={4} className="text-center">No violations found.</TableCell>
+                                </TableRow>
+                              )}
+                            </TableBody>
+                          </Table>
+                        )}
                       </div>
                     </DialogContent>
                   </Dialog>

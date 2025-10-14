@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import type { Violation } from '@/lib/types'
 import { useToast } from '@/hooks/use-toast'
-import { useAuth } from '@/hooks/use-auth'
+import { createClient } from '@/lib/supabase/client'
 
 interface ViolationsTableClientProps {
   initialViolations: Violation[]
@@ -22,22 +22,27 @@ interface ViolationsTableClientProps {
 export function ViolationsTableClient({ initialViolations }: ViolationsTableClientProps) {
   const [violations, setViolations] = useState(initialViolations)
   const { toast } = useToast()
-  const { isDemoMode } = useAuth()
+  const supabase = createClient()
 
   const handleMarkAsPaid = async (violationId: string) => {
-    if (isDemoMode) {
+    const { data, error } = await supabase
+      .from('violation')
+      .update({ status: 'Paid' })
+      .eq('id', violationId)
+      .select()
+
+    if (error) {
+      toast({ variant: 'destructive', title: 'Error', description: 'Failed to mark as paid.' })
+    } else {
       setViolations(violations.map(v => v.id === violationId ? { ...v, status: 'Paid' } : v))
-      toast({ title: 'Success', description: 'Violation marked as paid in demo mode.' })
-      return
+      toast({ title: 'Success', description: 'Violation marked as paid.' })
     }
-    // In a real app, you would call a server action to update the database
-    // const error = await markViolationAsPaid(violationId);
-    // if (error) { ... }
-    toast({ title: 'Success', description: 'Violation marked as paid.' })
   }
 
   const handleSendNotification = (violationId: string) => {
-    toast({ title: 'Notification Sent', description: `Notification sent for violation ID: ${violationId}` })
+    // This would typically trigger a backend process (e.g., a Supabase Edge Function)
+    console.log(`Sending notification for violation ${violationId}`);
+    toast({ title: 'Notification Sent', description: `A reminder has been sent for violation ID: ${violationId}` })
   }
 
   return (

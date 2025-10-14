@@ -5,20 +5,40 @@ import autoTable from 'jspdf-autotable'
 import { Button } from '@/components/ui/button'
 import { Download } from 'lucide-react'
 import type { DashboardStats, Violation } from '@/lib/types'
-import { MOCK_DASHBOARD_STATS, MOCK_VIOLATIONS } from '@/lib/mock-data'
-import { useAuth } from '@/hooks/use-auth'
 import { useToast } from '@/hooks/use-toast'
+import { createClient } from '@/lib/supabase/client'
 
 export function ReportsClient() {
-  const { isDemoMode } = useAuth()
   const { toast } = useToast()
+  const supabase = createClient()
 
-  const generateReport = (title: string, fromDate: Date) => {
+  const generateReport = async (title: string, fromDate: Date) => {
     toast({ title: 'Generating Report...', description: 'Please wait a moment.' })
     
-    // In a real app, fetch this data based on the date range
-    const stats: DashboardStats = MOCK_DASHBOARD_STATS
-    const recentViolations: Violation[] = MOCK_VIOLATIONS.filter(v => new Date(v.date) >= fromDate)
+    // Fetch live data
+    const { count: totalVehicles } = await supabase.from('vehicle').select('*', { count: 'exact', head: true });
+    const { count: pendingChallans } = await supabase.from('violation').select('*', { count: 'exact', head: true }).eq('status', 'Unpaid');
+    const { data: paidFines } = await supabase.from('violation').select('fine').eq('status', 'Paid');
+    const { data: recentViolationsData } = await supabase.from('violation').select('*, driver(name)').gte('date', fromDate.toISOString());
+
+    const totalFineCollected = paidFines ? paidFines.reduce((sum, item) => sum + item.fine, 0) : 0;
+    
+    const stats: DashboardStats = {
+      totalVehicles: totalVehicles ?? 0,
+      pendingChallans: pendingChallans ?? 0,
+      totalFineCollected: totalFineCollected,
+      violationsToday: 0, // Not calculated here for simplicity
+    };
+
+    const recentViolations: Violation[] = recentViolationsData?.map((v: any) => ({
+      id: v.id,
+      vehicle_reg_no: v.vehicle_reg_no,
+      driver_name: v.driver.name,
+      violation_type: v.violation_type,
+      fine: v.fine,
+      status: v.status,
+      date: v.date,
+    })) || [];
     
     const doc = new jsPDF()
     const today = new Date();

@@ -1,28 +1,36 @@
 import { createClient } from '@/lib/supabase/server'
 import { DashboardCards } from '@/components/dashboard-cards'
 import { ViolationsChart } from '@/components/violations-chart'
-import { MOCK_DASHBOARD_STATS, MOCK_CHART_DATA } from '@/lib/mock-data'
 import type { DashboardStats, ChartData } from '@/lib/types'
-import { cookies } from 'next/headers'
-
-// Dummy function to check for demo mode. In a real app, this might come from a cookie or context.
-const isDemoMode = () => {
-    return cookies().get('isDemoMode')?.value === 'true'
-}
 
 async function getDashboardData(): Promise<{ stats: DashboardStats, chartData: ChartData }> {
-  // In a real application, you would fetch this data from your Supabase database.
-  // For this example, we are using mock data.
   const supabase = createClient()
-  
-  // This is a placeholder for actual data fetching logic.
-  // e.g. const { count: totalVehicles } = await supabase.from('vehicles').select('*', { count: 'exact', head: true });
-  // etc.
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
 
-  return {
-    stats: MOCK_DASHBOARD_STATS,
-    chartData: MOCK_CHART_DATA,
+  const { count: totalVehicles } = await supabase.from('vehicle').select('*', { count: 'exact', head: true });
+  const { count: pendingChallans } = await supabase.from('violation').select('*', { count: 'exact', head: true }).eq('status', 'Unpaid');
+  const { data: paidFines, error: paidFinesError } = await supabase.from('violation').select('fine').eq('status', 'Paid');
+  const { count: violationsToday } = await supabase.from('violation').select('*', { count: 'exact', head: true }).gte('date', today.toISOString()).lt('date', tomorrow.toISOString());
+  const { count: paidCount } = await supabase.from('violation').select('*', { count: 'exact', head: true }).eq('status', 'Paid');
+
+  const totalFineCollected = paidFines ? paidFines.reduce((sum, item) => sum + item.fine, 0) : 0;
+  
+  const stats: DashboardStats = {
+    totalVehicles: totalVehicles ?? 0,
+    pendingChallans: pendingChallans ?? 0,
+    totalFineCollected: totalFineCollected,
+    violationsToday: violationsToday ?? 0,
   }
+
+  const chartData: ChartData = {
+    paid: paidCount ?? 0,
+    unpaid: pendingChallans ?? 0,
+  }
+
+  return { stats, chartData }
 }
 
 export default async function DashboardPage() {
