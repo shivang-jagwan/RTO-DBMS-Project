@@ -22,8 +22,20 @@ async function getDashboardData(): Promise<{ stats: DashboardStats, chartData: C
 
     const { count: paidCount, error: paidCountError } = await supabase.from('violation').select('*', { count: 'exact', head: true }).eq('paymentstatus', 'Paid');
 
-    const { data: offenderData, error: offenderError } = await supabase.rpc('get_top_offenders');
-    
+    const { data: offenderData, error: offenderError } = await supabase
+      .from('violation')
+      .select(`
+        driver:ownerdriverid (
+          driverid,
+          name,
+          contact
+        ),
+        vehicleid (
+          count
+        )
+      `)
+      .limit(5);
+
     if (vehiclesError || pendingError || paidFinesError || violationsTodayError || paidCountError || offenderError) {
       console.error('Dashboard fetch errors:', { vehiclesError, pendingError, paidFinesError, violationsTodayError, paidCountError, offenderError });
       return null;
@@ -43,7 +55,25 @@ async function getDashboardData(): Promise<{ stats: DashboardStats, chartData: C
       unpaid: pendingChallans ?? 0,
     }
     
-    const topOffenders: TopOffender[] = offenderData || [];
+    const topOffenders: TopOffender[] = (offenderData || [])
+      .reduce((acc: TopOffender[], current: any) => {
+        if (!current.driver) return acc;
+        const existing = acc.find(item => item.driverid === current.driver.driverid);
+        if (existing) {
+          existing.violation_count += 1;
+        } else {
+          acc.push({
+            driverid: current.driver.driverid,
+            name: current.driver.name,
+            contact: current.driver.contact,
+            violation_count: 1,
+          });
+        }
+        return acc;
+      }, [])
+      .sort((a, b) => b.violation_count - a.violation_count)
+      .slice(0, 5);
+
 
     return { stats, chartData, topOffenders }
   } catch (err) {
