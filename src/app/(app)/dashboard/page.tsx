@@ -1,95 +1,84 @@
+
 import { createClient } from '@/lib/supabase/server'
 import { DashboardCards } from '@/components/dashboard-cards'
 import { ViolationsChart } from '@/components/violations-chart'
 import { TopOffenders } from '@/components/top-offenders'
 import type { DashboardStats, ChartData, TopOffender } from '@/lib/types'
 
-async function getDashboardData(): Promise<{ stats: DashboardStats, chartData: ChartData, topOffenders: TopOffender[] } | null> {
+async function getDashboardData(): Promise<{ stats: DashboardStats, chartData: ChartData, topOffenders: TopOffender[] }> {
   const supabase = createClient()
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-
   try {
-    const { count: totalVehicles, error: vehiclesError } = await supabase.from('vehicle').select('*', { count: 'exact', head: true });
+    const { data: vehicles, error: vehiclesError } = await supabase.from('vehicle').select('*');
+    if (vehiclesError) throw vehiclesError;
 
-    const { count: pendingChallans, error: pendingError } = await supabase.from('violation').select('*', { count: 'exact', head: true }).eq('paymentstatus', 'Unpaid');
-    
-    const { data: paidFines, error: paidFinesError } = await supabase.from('violation').select('fineamount').eq('paymentstatus', 'Paid');
-
-    const { count: violationsToday, error: violationsTodayError } = await supabase.from('violation').select('*', { count: 'exact', head: true }).gte('lastnotificationat', today.toISOString()).lt('lastnotificationat', tomorrow.toISOString());
-
-    const { count: paidCount, error: paidCountError } = await supabase.from('violation').select('*', { count: 'exact', head: true }).eq('paymentstatus', 'Paid');
-
-    const { data: offenderData, error: offenderError } = await supabase
+    const { data: violations, error: violationsError } = await supabase
       .from('violation')
-      .select(`
-        driver:ownerdriverid (
-          driverid,
-          name,
-          contact
-        ),
-        vehicleid (
-          count
-        )
-      `)
-      .limit(5);
+      .select('*, driver:ownerdriverid(driverid, name, contact)');
+    if (violationsError) throw violationsError;
 
-    if (vehiclesError || pendingError || paidFinesError || violationsTodayError || paidCountError || offenderError) {
-      console.error('Dashboard fetch errors:', { vehiclesError, pendingError, paidFinesError, violationsTodayError, paidCountError, offenderError });
-      return null;
-    }
-    
-    const totalFineCollected = paidFines ? paidFines.reduce((sum, item) => sum + item.fineamount, 0) : 0;
+    const pendingChallans = violations.filter(v => v.paymentstatus === 'Unpaid').length;
+    const paidChallans = violations.filter(v => v.paymentstatus === 'Paid');
+    const totalFineCollected = paidChallans.reduce((sum, v) => sum + Number(v.fineamount), 0);
+    const today = new Date();
+    const violationsToday = violations.filter(v => v.lastnotificationat && new Date(v.lastnotificationat).toDateString() === today.toDateString()).length;
 
     const stats: DashboardStats = {
-      totalVehicles: totalVehicles ?? 0,
-      pendingChallans: pendingChallans ?? 0,
+      totalVehicles: vehicles.length,
+      pendingChallans: pendingChallans,
       totalFineCollected: totalFineCollected,
-      violationsToday: violationsToday ?? 0,
-    }
+      violationsToday: violationsToday
+    };
 
     const chartData: ChartData = {
-      paid: paidCount ?? 0,
-      unpaid: pendingChallans ?? 0,
-    }
-    
-    const topOffenders: TopOffender[] = (offenderData || [])
-      .reduce((acc: TopOffender[], current: any) => {
-        if (!current.driver) return acc;
-        const existing = acc.find(item => item.driverid === current.driver.driverid);
-        if (existing) {
-          existing.violation_count += 1;
-        } else {
-          acc.push({
-            driverid: current.driver.driverid,
-            name: current.driver.name,
-            contact: current.driver.contact,
-            violation_count: 1,
-          });
-        }
-        return acc;
-      }, [])
+      paid: paidChallans.length,
+      unpaid: pendingChallans
+    };
+
+    const offenderCounts = violations.reduce((acc: { [key: string]: TopOffender }, v: any) => {
+      if (!v.driver) return acc;
+      const driverId = v.driver.driverid;
+      if (!acc[driverId]) {
+        acc[driverId] = {
+          driverid: driverId,
+          name: v.driver.name,
+          contact: v.driver.contact,
+          violation_count: 0
+        };
+      }
+      acc[driverId].violation_count++;
+      return acc;
+    }, {});
+
+    const topOffenders = Object.values(offenderCounts)
       .sort((a, b) => b.violation_count - a.violation_count)
       .slice(0, 5);
 
+    return { stats, chartData, topOffenders };
 
-    return { stats, chartData, topOffenders }
   } catch (err) {
-    console.error('Unexpected error in dashboard fetch:', err);
-    return null;
+    console.error('Dashboard fetch error:', err);
+    return {
+      stats: {
+        totalVehicles: 0,
+        pendingChallans: 0,
+        totalFineCollected: 0,
+        violationsToday: 0
+      },
+      chartData: {
+        paid: 0,
+        unpaid: 0
+      },
+      topOffenders: []
+    };
   }
 }
 
 export default async function DashboardPage() {
-  const data = await getDashboardData();
+  const { stats, chartData, topOffenders } = await getDashboardData();
   
-  if (!data) {
+  if (!stats) {
     return <div className="text-center text-red-500">Error loading dashboard data. Please try again later.</div>;
   }
-
-  const { stats, chartData, topOffenders } = data;
   
   return (
     <div className="flex flex-col gap-8">
