@@ -37,30 +37,45 @@ export function VehiclesTableClient({ initialVehicles }: VehiclesTableClientProp
   const handleViewDetails = async (vehicle: Vehicle) => {
     setSelectedVehicle(vehicle)
     setLoadingViolations(true)
-    
-    const { data, error } = await supabase
-      .from('violation')
-      .select(`
-        *,
-        driver ( name )
-      `)
-      .eq('vehicle_reg_no', vehicle.regno);
 
-    if (error) {
-      console.error("Error fetching vehicle violations:", error)
-      setVehicleViolations([])
-    } else {
+    try {
+      const { data, error } = await supabase
+        .from('violation')
+        .select(`
+          violationid,
+          violationtype,
+          fineamount,
+          paymentstatus,
+          occurdate,
+          vehicle:vehicleid (
+            regno,
+            ownerdriverid,
+            driver:ownerdriverid (
+              name,
+              contact
+            )
+          )
+        `)
+        .eq('vehicleid', vehicle.vehicleid)
+
+      if (error) throw error
+
       const violationsData = data.map((v: any) => ({
-        id: v.id,
-        vehicle_reg_no: v.vehicle_reg_no,
-        driver_name: v.driver.name,
-        violation_type: v.violation_type,
-        fine: v.fine,
-        status: v.status,
-        date: v.date,
+        id: v.violationid,
+        vehicle_reg_no: v.vehicle.regno,
+        driver_name: v.vehicle.driver?.name || 'Unknown',
+        violation_type: v.violationtype,
+        fine: v.fineamount,
+        status: v.paymentstatus,
+        date: v.occurdate,
       })) as Violation[]
+
       setVehicleViolations(violationsData)
+    } catch (err) {
+      console.error('Error fetching vehicle violations:', err)
+      setVehicleViolations([])
     }
+
     setLoadingViolations(false)
   }
 
@@ -79,15 +94,17 @@ export function VehiclesTableClient({ initialVehicles }: VehiclesTableClientProp
           </TableHeader>
           <TableBody>
             {vehicles.map((vehicle) => (
-              <TableRow key={vehicle.vehicleid}>
+              <TableRow key={`vehicle-${vehicle.vehicleid}`}>
                 <TableCell className="font-medium">{vehicle.regno}</TableCell>
-                <TableCell>{vehicle.driver.name}</TableCell>
+                <TableCell>{vehicle.driver?.name || 'Unknown'}</TableCell>
                 <TableCell>{vehicle.make} {vehicle.model}</TableCell>
                 <TableCell>{vehicle.color}</TableCell>
                 <TableCell className="text-right">
                   <Dialog>
                     <DialogTrigger asChild>
-                      <Button variant="outline" size="sm" onClick={() => handleViewDetails(vehicle)}>View Details</Button>
+                      <Button variant="outline" size="sm" onClick={() => handleViewDetails(vehicle)}>
+                        View Details
+                      </Button>
                     </DialogTrigger>
                     <DialogContent className="sm:max-w-[625px]">
                       <DialogHeader>
@@ -115,19 +132,23 @@ export function VehiclesTableClient({ initialVehicles }: VehiclesTableClientProp
                             </TableHeader>
                             <TableBody>
                               {vehicleViolations.length > 0 ? (
-                                vehicleViolations.map(v => (
-                                  <TableRow key={v.id}>
+                                vehicleViolations.map((v) => (
+                                  <TableRow key={`violation-${v.id}`}>
                                     <TableCell>{v.violation_type}</TableCell>
                                     <TableCell>₹{v.fine}</TableCell>
                                     <TableCell>{new Date(v.date).toLocaleDateString()}</TableCell>
                                     <TableCell>
-                                      <Badge variant={v.status === 'Paid' ? 'secondary' : 'destructive'}>{v.status}</Badge>
+                                      <Badge variant={v.status === 'Paid' ? 'secondary' : 'destructive'}>
+                                        {v.status}
+                                      </Badge>
                                     </TableCell>
                                   </TableRow>
                                 ))
                               ) : (
                                 <TableRow>
-                                  <TableCell colSpan={4} className="text-center">No violations found.</TableCell>
+                                  <TableCell colSpan={4} className="text-center">
+                                    No violations found.
+                                  </TableCell>
                                 </TableRow>
                               )}
                             </TableBody>

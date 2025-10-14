@@ -38,17 +38,19 @@ export function TopOffenders({ offenders }: TopOffendersProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {offenders.map((offender) => (
-              <TableRow key={offender.driverid}>
+            {offenders.map((offender, index) => (
+              <TableRow key={`${offender.driverid}-${index}`}>
                 <TableCell>{offender.name}</TableCell>
                 <TableCell>{offender.contact}</TableCell>
                 <TableCell className="text-right">{offender.violation_count}</TableCell>
               </TableRow>
             ))}
             {offenders.length === 0 && (
-                <TableRow>
-                    <TableCell colSpan={3} className="text-center">No offender data available.</TableCell>
-                </TableRow>
+              <TableRow>
+                <TableCell colSpan={3} className="text-center">
+                  No offender data available.
+                </TableCell>
+              </TableRow>
             )}
           </TableBody>
         </Table>
