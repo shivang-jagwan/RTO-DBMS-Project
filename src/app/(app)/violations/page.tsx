@@ -5,11 +5,16 @@ import type { Violation } from '@/lib/types'
 async function getViolations(): Promise<Violation[]> {
   const supabase = createClient()
   const { data, error } = await supabase.from('violation').select(`
-    *,
+    id,
+    violation_type,
+    fine,
+    status,
+    date,
+    vehicle_reg_no,
     driver ( name )
   `)
   if (error) {
-    console.error('Error fetching violations', error.message)
+    console.error('Error fetching violations:', error.message)
     return []
   }
 
