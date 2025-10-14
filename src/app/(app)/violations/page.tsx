@@ -12,7 +12,7 @@ async function getViolations(): Promise<Violation[]> {
       violationtype,
       fineamount,
       paymentstatus,
-      lastnotificationat,
+      occurdate,
       vehicle:vehicleid (
         vehicleid,
         regno,
@@ -29,7 +29,7 @@ async function getViolations(): Promise<Violation[]> {
       )
     `
     )
-    .order('lastnotificationat', { ascending: false })
+    .order('occurdate', { ascending: false })
 
   if (error) {
     console.error('Error fetching violations:', error)

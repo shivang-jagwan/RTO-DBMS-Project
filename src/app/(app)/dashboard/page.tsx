@@ -20,7 +20,7 @@ async function getDashboardData(): Promise<{ stats: DashboardStats, chartData: C
     const paidChallans = violations.filter(v => v.paymentstatus === 'Paid');
     const totalFineCollected = paidChallans.reduce((sum, v) => sum + Number(v.fineamount), 0);
     const today = new Date();
-    const violationsToday = violations.filter(v => v.lastnotificationat && new Date(v.lastnotificationat).toDateString() === today.toDateString()).length;
+    const violationsToday = violations.filter(v => v.occurdate && new Date(v.occurdate).toDateString() === today.toDateString()).length;
 
     const stats: DashboardStats = {
       totalVehicles: vehicles.length,

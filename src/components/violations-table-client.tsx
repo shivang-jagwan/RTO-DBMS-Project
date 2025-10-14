@@ -56,7 +56,7 @@ export function ViolationsTableClient({ initialViolations }: ViolationsTableClie
             <TableHead>Violation Type</TableHead>
             <TableHead>Fine</TableHead>
             <TableHead>Status</TableHead>
-            <TableHead>Last Notified</TableHead>
+            <TableHead>Date</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -72,7 +72,7 @@ export function ViolationsTableClient({ initialViolations }: ViolationsTableClie
                 <Badge variant={violation.paymentstatus === 'Paid' ? 'secondary' : 'destructive'}>{violation.paymentstatus}</Badge>
               </TableCell>
               <TableCell>
-                {violation.lastnotificationat ? format(new Date(violation.lastnotificationat), 'PPp') : 'Never'}
+                {violation.occurdate ? format(new Date(violation.occurdate), 'PPp') : 'Never'}
               </TableCell>
               <TableCell className="text-right">
                 <div className="flex gap-2 justify-end">

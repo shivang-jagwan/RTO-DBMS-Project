@@ -20,7 +20,7 @@ export type Violation = {
   violationtype: string;
   fineamount: number;
   paymentstatus: 'Paid' | 'Unpaid';
-  lastnotificationat: string;
+  occurdate: string;
   vehicle: Vehicle | null;
 };
 
