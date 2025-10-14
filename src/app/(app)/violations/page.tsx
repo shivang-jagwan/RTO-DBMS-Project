@@ -9,7 +9,7 @@ async function getViolations(): Promise<Violation[]> {
     driver ( name )
   `)
   if (error) {
-    console.error('Error fetching violations', error)
+    console.error('Error fetching violations', error.message)
     return []
   }
 

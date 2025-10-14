@@ -14,7 +14,7 @@ async function getVehicles(): Promise<Vehicle[]> {
   `);
 
   if (error) {
-    console.error('Error fetching vehicles:', error)
+    console.error('Error fetching vehicles:', error.message)
     return []
   }
   
