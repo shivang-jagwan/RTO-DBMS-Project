@@ -4,50 +4,62 @@ import { ViolationsChart } from '@/components/violations-chart'
 import { TopOffenders } from '@/components/top-offenders'
 import type { DashboardStats, ChartData, TopOffender } from '@/lib/types'
 
-async function getDashboardData(): Promise<{ stats: DashboardStats, chartData: ChartData, topOffenders: TopOffender[] }> {
+async function getDashboardData(): Promise<{ stats: DashboardStats, chartData: ChartData, topOffenders: TopOffender[] } | null> {
   const supabase = createClient()
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
 
-  // Stats for cards
-  const { count: totalVehicles } = await supabase.from('vehicle').select('*', { count: 'exact', head: true });
-  const { count: pendingChallans, error: pendingError } = await supabase.from('violation').select('*', { count: 'exact', head: true }).eq('paymentstatus', 'Unpaid');
-  const { data: paidFines, error: paidFinesError } = await supabase.from('violation').select('fineamount').eq('paymentstatus', 'Paid');
-  const { count: violationsToday, error: violationsTodayError } = await supabase.from('violation').select('*', { count: 'exact', head: true }).gte('lastnotificationat', today.toISOString()).lt('lastnotificationat', tomorrow.toISOString());
+  try {
+    const { count: totalVehicles, error: vehiclesError } = await supabase.from('vehicle').select('*', { count: 'exact', head: true });
 
-  const totalFineCollected = paidFines ? paidFines.reduce((sum, item) => sum + item.fineamount, 0) : 0;
+    const { count: pendingChallans, error: pendingError } = await supabase.from('violation').select('*', { count: 'exact', head: true }).eq('paymentstatus', 'Unpaid');
+    
+    const { data: paidFines, error: paidFinesError } = await supabase.from('violation').select('fineamount').eq('paymentstatus', 'Paid');
 
-  // Data for Paid vs Unpaid chart
-  const { count: paidCount, error: paidCountError } = await supabase.from('violation').select('*', { count: 'exact', head: true }).eq('paymentstatus', 'Paid');
+    const { count: violationsToday, error: violationsTodayError } = await supabase.from('violation').select('*', { count: 'exact', head: true }).gte('lastnotificationat', today.toISOString()).lt('lastnotificationat', tomorrow.toISOString());
 
-  // Data for Top Offenders
-  const { data: offenderData, error: offenderError } = await supabase.rpc('get_top_offenders');
+    const { count: paidCount, error: paidCountError } = await supabase.from('violation').select('*', { count: 'exact', head: true }).eq('paymentstatus', 'Paid');
 
-  if (pendingError || paidFinesError || violationsTodayError || paidCountError || offenderError) {
-    console.error({ pendingError, paidFinesError, violationsTodayError, paidCountError, offenderError });
+    const { data: offenderData, error: offenderError } = await supabase.rpc('get_top_offenders');
+    
+    if (vehiclesError || pendingError || paidFinesError || violationsTodayError || paidCountError || offenderError) {
+      console.error('Dashboard fetch errors:', { vehiclesError, pendingError, paidFinesError, violationsTodayError, paidCountError, offenderError });
+      return null;
+    }
+    
+    const totalFineCollected = paidFines ? paidFines.reduce((sum, item) => sum + item.fineamount, 0) : 0;
+
+    const stats: DashboardStats = {
+      totalVehicles: totalVehicles ?? 0,
+      pendingChallans: pendingChallans ?? 0,
+      totalFineCollected: totalFineCollected,
+      violationsToday: violationsToday ?? 0,
+    }
+
+    const chartData: ChartData = {
+      paid: paidCount ?? 0,
+      unpaid: pendingChallans ?? 0,
+    }
+    
+    const topOffenders: TopOffender[] = offenderData || [];
+
+    return { stats, chartData, topOffenders }
+  } catch (err) {
+    console.error('Unexpected error in dashboard fetch:', err);
+    return null;
   }
-
-  const stats: DashboardStats = {
-    totalVehicles: totalVehicles ?? 0,
-    pendingChallans: pendingChallans ?? 0,
-    totalFineCollected: totalFineCollected,
-    violationsToday: violationsToday ?? 0,
-  }
-
-  const chartData: ChartData = {
-    paid: paidCount ?? 0,
-    unpaid: pendingChallans ?? 0,
-  }
-  
-  const topOffenders: TopOffender[] = offenderData || [];
-
-  return { stats, chartData, topOffenders }
 }
 
 export default async function DashboardPage() {
-  const { stats, chartData, topOffenders } = await getDashboardData();
+  const data = await getDashboardData();
+  
+  if (!data) {
+    return <div className="text-center text-red-500">Error loading dashboard data. Please try again later.</div>;
+  }
+
+  const { stats, chartData, topOffenders } = data;
   
   return (
     <div className="flex flex-col gap-8">
