@@ -57,9 +57,9 @@ export default function SignupPage() {
     } else {
       toast({
         title: 'Account Created',
-        description: 'Your account has been successfully created. Please login.',
+        description: 'Your account has been successfully created. Logging you in...',
       })
-      router.push('/login')
+      window.location.href = '/dashboard'
     }
   }
 
