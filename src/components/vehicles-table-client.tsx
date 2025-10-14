@@ -44,7 +44,7 @@ export function VehiclesTableClient({ initialVehicles }: VehiclesTableClientProp
         *,
         driver ( name )
       `)
-      .eq('vehicle_reg_no', vehicle.reg_no);
+      .eq('vehicle_reg_no', vehicle.regno);
 
     if (error) {
       console.error("Error fetching vehicle violations:", error)
@@ -74,20 +74,16 @@ export function VehiclesTableClient({ initialVehicles }: VehiclesTableClientProp
               <TableHead>Owner</TableHead>
               <TableHead>Model</TableHead>
               <TableHead>Color</TableHead>
-              <TableHead>Status</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {vehicles.map((vehicle) => (
-              <TableRow key={vehicle.id}>
-                <TableCell className="font-medium">{vehicle.reg_no}</TableCell>
-                <TableCell>{vehicle.owner_name}</TableCell>
-                <TableCell>{vehicle.model}</TableCell>
+              <TableRow key={vehicle.vehicleid}>
+                <TableCell className="font-medium">{vehicle.regno}</TableCell>
+                <TableCell>{vehicle.driver.name}</TableCell>
+                <TableCell>{vehicle.make} {vehicle.model}</TableCell>
                 <TableCell>{vehicle.color}</TableCell>
-                <TableCell>
-                  <Badge variant={vehicle.status === 'Active' ? 'default' : 'secondary'}>{vehicle.status}</Badge>
-                </TableCell>
                 <TableCell className="text-right">
                   <Dialog>
                     <DialogTrigger asChild>
@@ -95,7 +91,7 @@ export function VehiclesTableClient({ initialVehicles }: VehiclesTableClientProp
                     </DialogTrigger>
                     <DialogContent className="sm:max-w-[625px]">
                       <DialogHeader>
-                        <DialogTitle>Violation History: {selectedVehicle?.reg_no}</DialogTitle>
+                        <DialogTitle>Violation History: {selectedVehicle?.regno}</DialogTitle>
                         <DialogDescription>
                           All recorded violations for this vehicle.
                         </DialogDescription>

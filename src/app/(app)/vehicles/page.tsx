@@ -5,11 +5,11 @@ import type { Vehicle } from '@/lib/types'
 async function getVehicles(): Promise<Vehicle[]> {
   const supabase = createClient()
   const { data, error } = await supabase.from('vehicle').select(`
-    id,
-    reg_no,
+    vehicleid,
+    regno,
+    make,
     model,
     color,
-    status,
     driver:ownerdriverid (
       driverid,
       name,
@@ -24,14 +24,7 @@ async function getVehicles(): Promise<Vehicle[]> {
     return []
   }
   
-  return data.map((v: any) => ({
-      id: v.id,
-      reg_no: v.reg_no,
-      model: v.model,
-      color: v.color,
-      status: v.status,
-      owner_name: v.driver.name
-  })) as Vehicle[];
+  return data as Vehicle[];
 }
 
 export default async function VehiclesPage() {

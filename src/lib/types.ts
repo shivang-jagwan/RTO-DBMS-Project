@@ -12,12 +12,14 @@ export type Driver = {
 }
 
 export type Vehicle = {
-  id: string;
-  reg_no: string;
+  vehicleid: string;
+  regno: string;
+  make: string;
   model: string;
   color: string;
-  owner_name: string;
-  status: 'Active' | 'Inactive';
+  driver: {
+    name: string;
+  };
 };
 
 export type Violation = {
