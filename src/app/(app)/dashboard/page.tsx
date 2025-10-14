@@ -11,12 +11,12 @@ async function getDashboardData(): Promise<{ stats: DashboardStats, chartData: C
   tomorrow.setDate(tomorrow.getDate() + 1);
 
   const { count: totalVehicles } = await supabase.from('vehicle').select('*', { count: 'exact', head: true });
-  const { count: pendingChallans } = await supabase.from('violation').select('*', { count: 'exact', head: true }).eq('status', 'Unpaid');
-  const { data: paidFines, error: paidFinesError } = await supabase.from('violation').select('fine').eq('status', 'Paid');
-  const { count: violationsToday } = await supabase.from('violation').select('*', { count: 'exact', head: true }).gte('date', today.toISOString()).lt('date', tomorrow.toISOString());
-  const { count: paidCount } = await supabase.from('violation').select('*', { count: 'exact', head: true }).eq('status', 'Paid');
+  const { count: pendingChallans } = await supabase.from('violation').select('*', { count: 'exact', head: true }).eq('paymentstatus', 'Unpaid');
+  const { data: paidFines, error: paidFinesError } = await supabase.from('violation').select('fineamount').eq('paymentstatus', 'Paid');
+  const { count: violationsToday } = await supabase.from('violation').select('*', { count: 'exact', head: true }).gte('lastnotificationat', today.toISOString()).lt('lastnotificationat', tomorrow.toISOString());
+  const { count: paidCount } = await supabase.from('violation').select('*', { count: 'exact', head: true }).eq('paymentstatus', 'Paid');
 
-  const totalFineCollected = paidFines ? paidFines.reduce((sum, item) => sum + item.fine, 0) : 0;
+  const totalFineCollected = paidFines ? paidFines.reduce((sum, item) => sum + item.fineamount, 0) : 0;
   
   const stats: DashboardStats = {
     totalVehicles: totalVehicles ?? 0,
