@@ -18,7 +18,11 @@ export type Vehicle = {
   model: string;
   color: string;
   driver: {
+    driverid: string;
     name: string;
+    contact?: string;
+    phonenumber?: string;
+    address?: string;
   };
 };
 
