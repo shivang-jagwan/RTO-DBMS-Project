@@ -59,8 +59,7 @@ export default function LoginPage() {
         title: 'Login Successful',
         description: "Welcome back! You're now logged in.",
       })
-      router.push('/dashboard')
-      router.refresh()
+      window.location.href = '/dashboard'
     }
   }
 
@@ -70,7 +69,7 @@ export default function LoginPage() {
       title: 'Demo Mode Activated',
       description: 'You are now exploring the app as a demo user.',
     })
-    router.push('/dashboard')
+    window.location.href = '/dashboard'
   }
 
   return (
@@ -116,7 +115,7 @@ export default function LoginPage() {
             <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
               {form.formState.isSubmitting ? 'Logging in...' : 'Login'}
             </Button>
-            <Button variant="secondary" className="w-full" onClick={handleDemoMode}>
+            <Button variant="secondary" className="w-full" onClick={handleDemoMode} type="button">
               Continue as Demo User
             </Button>
           </form>
