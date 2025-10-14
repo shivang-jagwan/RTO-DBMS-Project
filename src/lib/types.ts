@@ -1,8 +1,3 @@
-export type Owner = {
-  id: string;
-  name: string;
-}
-
 export type Driver = {
   driverid: string;
   name: string;
@@ -17,23 +12,16 @@ export type Vehicle = {
   make: string;
   model: string;
   color: string;
-  driver: {
-    driverid: string;
-    name: string;
-    contact?: string;
-    phonenumber?: string;
-    address?: string;
-  };
+  driver: Driver;
 };
 
 export type Violation = {
-  id: string;
-  vehicle_reg_no: string;
-  driver_name: string;
-  violation_type: string;
-  fine: number;
-  status: 'Paid' | 'Unpaid';
-  date: string;
+  violationid: string;
+  violationtype: string;
+  fineamount: number;
+  paymentstatus: 'Paid' | 'Unpaid';
+  lastnotificationat: string;
+  vehicle: Vehicle | null;
 };
 
 export type DashboardStats = {

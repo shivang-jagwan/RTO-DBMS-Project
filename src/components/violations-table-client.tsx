@@ -14,6 +14,7 @@ import { Badge } from '@/components/ui/badge'
 import type { Violation } from '@/lib/types'
 import { useToast } from '@/hooks/use-toast'
 import { createClient } from '@/lib/supabase/client'
+import { format } from 'date-fns'
 
 interface ViolationsTableClientProps {
   initialViolations: Violation[]
@@ -27,20 +28,19 @@ export function ViolationsTableClient({ initialViolations }: ViolationsTableClie
   const handleMarkAsPaid = async (violationId: string) => {
     const { data, error } = await supabase
       .from('violation')
-      .update({ status: 'Paid' })
-      .eq('id', violationId)
+      .update({ paymentstatus: 'Paid' })
+      .eq('violationid', violationId)
       .select()
 
     if (error) {
       toast({ variant: 'destructive', title: 'Error', description: 'Failed to mark as paid.' })
     } else {
-      setViolations(violations.map(v => v.id === violationId ? { ...v, status: 'Paid' } : v))
+      setViolations(violations.map(v => v.violationid === violationId ? { ...v, paymentstatus: 'Paid' } : v))
       toast({ title: 'Success', description: 'Violation marked as paid.' })
     }
   }
 
   const handleSendNotification = (violationId: string) => {
-    // This would typically trigger a backend process (e.g., a Supabase Edge Function)
     console.log(`Sending notification for violation ${violationId}`);
     toast({ title: 'Notification Sent', description: `A reminder has been sent for violation ID: ${violationId}` })
   }
@@ -56,26 +56,30 @@ export function ViolationsTableClient({ initialViolations }: ViolationsTableClie
             <TableHead>Violation Type</TableHead>
             <TableHead>Fine</TableHead>
             <TableHead>Status</TableHead>
+            <TableHead>Last Notified</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {violations.map((violation) => (
-            <TableRow key={violation.id}>
-              <TableCell className="font-mono text-xs">{violation.id}</TableCell>
-              <TableCell className="font-medium">{violation.vehicle_reg_no}</TableCell>
-              <TableCell>{violation.driver_name}</TableCell>
-              <TableCell>{violation.violation_type}</TableCell>
-              <TableCell>₹{violation.fine.toLocaleString()}</TableCell>
+            <TableRow key={violation.violationid}>
+              <TableCell className="font-mono text-xs">{violation.violationid}</TableCell>
+              <TableCell className="font-medium">{violation.vehicle?.regno ?? 'N/A'}</TableCell>
+              <TableCell>{violation.vehicle?.driver?.name ?? 'N/A'}</TableCell>
+              <TableCell>{violation.violationtype}</TableCell>
+              <TableCell>₹{violation.fineamount.toLocaleString()}</TableCell>
               <TableCell>
-                <Badge variant={violation.status === 'Paid' ? 'secondary' : 'destructive'}>{violation.status}</Badge>
+                <Badge variant={violation.paymentstatus === 'Paid' ? 'secondary' : 'destructive'}>{violation.paymentstatus}</Badge>
+              </TableCell>
+              <TableCell>
+                {violation.lastnotificationat ? format(new Date(violation.lastnotificationat), 'PPp') : 'Never'}
               </TableCell>
               <TableCell className="text-right">
                 <div className="flex gap-2 justify-end">
-                  {violation.status === 'Unpaid' && (
-                    <Button variant="outline" size="sm" onClick={() => handleMarkAsPaid(violation.id)}>Mark as Paid</Button>
+                  {violation.paymentstatus === 'Unpaid' && (
+                    <Button variant="outline" size="sm" onClick={() => handleMarkAsPaid(violation.violationid)}>Mark as Paid</Button>
                   )}
-                  <Button variant="ghost" size="sm" onClick={() => handleSendNotification(violation.id)}>Send Notification</Button>
+                  <Button variant="ghost" size="sm" onClick={() => handleSendNotification(violation.violationid)}>Send Notification</Button>
                 </div>
               </TableCell>
             </TableRow>

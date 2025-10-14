@@ -8,35 +8,35 @@ async function getViolations(): Promise<Violation[]> {
     .from('violation')
     .select(
       `
-      id,
-      violation_type,
-      fine,
-      status,
-      date,
-      vehicle (
+      violationid,
+      violationtype,
+      fineamount,
+      paymentstatus,
+      lastnotificationat,
+      vehicle:vehicleid (
+        vehicleid,
         regno,
-        driver (
-          name
+        make,
+        model,
+        color,
+        driver:ownerdriverid (
+          driverid,
+          name,
+          contact,
+          phonenumber,
+          address
         )
       )
     `
     )
-    .order('date', { ascending: false })
+    .order('lastnotificationat', { ascending: false })
 
   if (error) {
-    console.error('Error fetching violations:', error.message)
+    console.error('Error fetching violations:', error)
     return []
   }
 
-  return data.map((v: any) => ({
-    id: v.id,
-    violation_type: v.violation_type,
-    fine: v.fine,
-    status: v.status,
-    date: v.date,
-    vehicle_reg_no: v.vehicle.regno,
-    driver_name: v.vehicle.driver.name,
-  })) as Violation[]
+  return data as Violation[]
 }
 
 export default async function ViolationsPage() {
