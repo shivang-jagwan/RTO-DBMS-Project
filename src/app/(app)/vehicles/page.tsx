@@ -10,7 +10,7 @@ async function getVehicles(): Promise<Vehicle[]> {
     model,
     color,
     status,
-    owner ( name )
+    driver:owner ( name )
   `);
 
   if (error) {
@@ -19,8 +19,12 @@ async function getVehicles(): Promise<Vehicle[]> {
   }
   
   return data.map((v: any) => ({
-      ...v,
-      owner_name: v.owner.name
+      id: v.id,
+      reg_no: v.reg_no,
+      model: v.model,
+      color: v.color,
+      status: v.status,
+      owner_name: v.driver.name
   })) as Vehicle[];
 }
 
