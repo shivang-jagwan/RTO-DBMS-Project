@@ -27,12 +27,13 @@ const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
 const twilioPhoneNumber = process.env.TWILIO_PHONE_NUMBER;
 const recipientPhoneNumber = process.env.RECIPIENT_PHONE_NUMBER;
+const isDemoMode = process.env.NODE_ENV === 'development' || !accountSid || !authToken;
 
 if (!accountSid || !authToken || !twilioPhoneNumber || !recipientPhoneNumber) {
-  console.error('Twilio credentials or recipient phone number are not set in environment variables.');
+  console.log('Twilio credentials not configured - running in demo mode.');
 }
 
-const twilioClient = twilio(accountSid, authToken);
+const twilioClient = isDemoMode ? null : twilio(accountSid, authToken);
 
 // Define the AI flow
 const sendNotificationFlow = ai.defineFlow(
@@ -42,10 +43,6 @@ const sendNotificationFlow = ai.defineFlow(
     outputSchema: z.object({ success: z.boolean(), message: z.string() }),
   },
   async (violation) => {
-    if (!accountSid || !authToken || !twilioPhoneNumber || !recipientPhoneNumber) {
-      throw new Error('Twilio environment variables are not configured properly.');
-    }
-
     const messageBody = `
 RTO Violation Alert:
 Vehicle: ${violation.regno}
@@ -56,10 +53,24 @@ Please pay the pending challan.
     `;
 
     try {
+      if (isDemoMode || !twilioClient) {
+        // Demo mode - simulate SMS sending
+        console.log('Demo Mode: SMS would be sent with content:', messageBody);
+        console.log('Demo Mode: To number:', recipientPhoneNumber || '+91XXXXXXXXXX');
+        
+        // Simulate a delay like a real SMS
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        return { 
+          success: true, 
+          message: 'Demo notification sent successfully! (No actual SMS sent in demo mode)' 
+        };
+      }
+
       const message = await twilioClient.messages.create({
         body: messageBody,
-        from: twilioPhoneNumber,
-        to: recipientPhoneNumber, // Hardcoded for prototype
+        from: twilioPhoneNumber!,
+        to: recipientPhoneNumber!, // Hardcoded for prototype
       });
       console.log('SMS sent successfully. SID:', message.sid);
       return { success: true, message: 'Notification sent successfully.' };
