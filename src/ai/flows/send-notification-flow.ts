@@ -11,8 +11,9 @@ import { z } from 'genkit';
 import twilio from 'twilio';
 import 'dotenv/config';
 
+// Define the input schema for the flow
 const ViolationNotificationInputSchema = z.object({
-  violationid: z.string().describe('The ID of the violation.'),
+  violationid: z.string().describe('The ID of the violation.'), // must be string
   regno: z.string().describe("The vehicle's registration number."),
   violationtype: z.string().describe('The type of violation.'),
   fineamount: z.number().describe('The amount of the fine.'),
@@ -21,7 +22,7 @@ const ViolationNotificationInputSchema = z.object({
 
 export type ViolationNotificationInput = z.infer<typeof ViolationNotificationInputSchema>;
 
-// Ensure environment variables are loaded
+// Load environment variables
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
 const twilioPhoneNumber = process.env.TWILIO_PHONE_NUMBER;
@@ -33,6 +34,7 @@ if (!accountSid || !authToken || !twilioPhoneNumber || !recipientPhoneNumber) {
 
 const twilioClient = twilio(accountSid, authToken);
 
+// Define the AI flow
 const sendNotificationFlow = ai.defineFlow(
   {
     name: 'sendNotificationFlow',
@@ -43,14 +45,14 @@ const sendNotificationFlow = ai.defineFlow(
     if (!accountSid || !authToken || !twilioPhoneNumber || !recipientPhoneNumber) {
       throw new Error('Twilio environment variables are not configured properly.');
     }
-    
+
     const messageBody = `
-      RTO Violation Alert:
-      Vehicle: ${violation.regno}
-      Violation: ${violation.violationtype}
-      Fine: ₹${violation.fineamount}
-      Date: ${new Date(violation.occurdate).toLocaleDateString()}
-      Please pay the pending challan.
+RTO Violation Alert:
+Vehicle: ${violation.regno}
+Violation: ${violation.violationtype}
+Fine: ₹${violation.fineamount}
+Date: ${new Date(violation.occurdate).toLocaleDateString()}
+Please pay the pending challan.
     `;
 
     try {
@@ -68,6 +70,15 @@ const sendNotificationFlow = ai.defineFlow(
   }
 );
 
-export async function sendNotification(input: ViolationNotificationInput): Promise<{ success: boolean; message: string; }> {
-    return await sendNotificationFlow(input);
+// Wrapper function to ensure types match schema
+export async function sendNotification(
+  input: ViolationNotificationInput | any
+): Promise<{ success: boolean; message: string }> {
+  // Convert violationid to string to satisfy Genkit schema
+  const formattedInput: ViolationNotificationInput = {
+    ...input,
+    violationid: String(input.violationid),
+  };
+
+  return await sendNotificationFlow(formattedInput);
 }
