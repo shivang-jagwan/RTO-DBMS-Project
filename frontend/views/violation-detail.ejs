@@ -1,0 +1,452 @@
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="/violations">Violations</a></li>
+                <li class="breadcrumb-item active">Violation Details</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h1 class="h3 mb-0">
+                    <i class="fas fa-file-alt text-primary"></i> Violation Details
+                </h1>
+                <span class="badge fs-6 <%= violation.Fine_Paid === 'Yes' ? 'bg-success' : 'bg-warning' %>">
+                    <%= violation.Fine_Paid === 'Yes' ? 'Paid' : 'Unpaid' %>
+                </span>
+            </div>
+            <div class="card-body">
+                <!-- Basic Information -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h5 class="text-primary mb-3">
+                            <i class="fas fa-info-circle"></i> Basic Information
+                        </h5>
+                        <table class="table table-borderless">
+                            <tr>
+                                <td class="fw-bold text-muted" width="40%">Violation ID:</td>
+                                <td><code><%= violation.Violation_ID || violation.violation_id %></code></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold text-muted">Violation Type:</td>
+                                <td>
+                                    <span class="badge bg-secondary fs-6"><%= violation.Violation_Type || 'N/A' %></span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold text-muted">Fine Amount:</td>
+                                <td>
+                                    <span class="text-success fw-bold fs-5">₹<%= (violation.Fine_Amount || 0).toLocaleString() %></span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold text-muted">Location:</td>
+                                <td><%= violation.Location || 'N/A' %></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold text-muted">Date & Time:</td>
+                                <td><%= violation.Date || 'N/A' %> <%= violation.Time ? 'at ' + violation.Time : '' %></td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div class="col-md-6">
+                        <h5 class="text-primary mb-3">
+                            <i class="fas fa-car"></i> Vehicle Information
+                        </h5>
+                        <table class="table table-borderless">
+                            <tr>
+                                <td class="fw-bold text-muted" width="40%">Vehicle Type:</td>
+                                <td><%= violation.Vehicle_Type || 'N/A' %></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold text-muted">Vehicle Color:</td>
+                                <td><%= violation.Vehicle_Color || 'N/A' %></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold text-muted">Model Year:</td>
+                                <td><%= violation.Vehicle_Model_Year || 'N/A' %></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold text-muted">Registration State:</td>
+                                <td><%= violation.Registration_State || 'N/A' %></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold text-muted">Helmet Worn:</td>
+                                <td>
+                                    <% if (violation.Helmet_Worn === 'Yes') { %>
+                                        <span class="badge bg-success">Yes</span>
+                                    <% } else if (violation.Helmet_Worn === 'No') { %>
+                                        <span class="badge bg-danger">No</span>
+                                    <% } else { %>
+                                        <span class="badge bg-secondary">N/A</span>
+                                    <% } %>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Driver Information -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h5 class="text-primary mb-3">
+                            <i class="fas fa-user"></i> Driver Information
+                        </h5>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <td class="fw-bold text-muted" width="40%">Driver Age:</td>
+                                <td><%= violation.Driver_Age || 'N/A' %></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold text-muted">Driver Gender:</td>
+                                <td><%= violation.Driver_Gender || 'N/A' %></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold text-muted">License Type:</td>
+                                <td><%= violation.License_Type || 'N/A' %></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold text-muted">License Validity:</td>
+                                <td>
+                                    <% if (violation.License_Validity === 'Valid') { %>
+                                        <span class="badge bg-success">Valid</span>
+                                    <% } else if (violation.License_Validity === 'Expired') { %>
+                                        <span class="badge bg-danger">Expired</span>
+                                    <% } else { %>
+                                        <span class="badge bg-secondary"><%= violation.License_Validity || 'N/A' %></span>
+                                    <% } %>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <td class="fw-bold text-muted" width="40%">Previous Violations:</td>
+                                <td>
+                                    <span class="badge bg-warning"><%= violation.Previous_Violations || 0 %></span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold text-muted">Penalty Points:</td>
+                                <td><%= violation.Penalty_Points || 'N/A' %></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold text-muted">Alcohol Level:</td>
+                                <td><%= violation.Alcohol_Level || 'N/A' %></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold text-muted">Breathalyzer Result:</td>
+                                <td>
+                                    <% if (violation.Breathalyzer_Result === 'Positive') { %>
+                                        <span class="badge bg-danger">Positive</span>
+                                    <% } else if (violation.Breathalyzer_Result === 'Negative') { %>
+                                        <span class="badge bg-success">Negative</span>
+                                    <% } else { %>
+                                        <span class="badge bg-secondary"><%= violation.Breathalyzer_Result || 'N/A' %></span>
+                                    <% } %>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Enforcement Information -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h5 class="text-primary mb-3">
+                            <i class="fas fa-gavel"></i> Enforcement Information
+                        </h5>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <td class="fw-bold text-muted" width="40%">Officer ID:</td>
+                                <td><code><%= violation.Officer_ID || 'N/A' %></code></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold text-muted">Issuing Agency:</td>
+                                <td><%= violation.Issuing_Agency || 'N/A' %></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold text-muted">Traffic Light Status:</td>
+                                <td><%= violation.Traffic_Light_Status || 'N/A' %></td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <td class="fw-bold text-muted" width="40%">Speed Limit:</td>
+                                <td><%= violation.Speed_Limit ? violation.Speed_Limit + ' km/h' : 'N/A' %></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold text-muted">Recorded Speed:</td>
+                                <td><%= violation.Recorded_Speed ? violation.Recorded_Speed + ' km/h' : 'N/A' %></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold text-muted">Speed Violation:</td>
+                                <td>
+                                    <% if (violation.Recorded_Speed && violation.Speed_Limit) { %>
+                                        <% const overSpeed = violation.Recorded_Speed - violation.Speed_Limit; %>
+                                        <% if (overSpeed > 0) { %>
+                                            <span class="badge bg-danger"><%= overSpeed %> km/h over limit</span>
+                                        <% } else { %>
+                                            <span class="badge bg-success">Within limit</span>
+                                        <% } %>
+                                    <% } else { %>
+                                        <span class="badge bg-secondary">N/A</span>
+                                    <% } %>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Conditions & Additional Info -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h5 class="text-primary mb-3">
+                            <i class="fas fa-cloud-sun"></i> Conditions & Additional Information
+                        </h5>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <td class="fw-bold text-muted" width="40%">Weather Condition:</td>
+                                <td><%= violation.Weather_Condition || 'N/A' %></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold text-muted">Road Condition:</td>
+                                <td><%= violation.Road_Condition || 'N/A' %></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold text-muted">Number of Passengers:</td>
+                                <td><%= violation.Number_of_Passengers || 'N/A' %></td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <td class="fw-bold text-muted" width="40%">Seatbelt Worn:</td>
+                                <td>
+                                    <% if (violation.Seatbelt_Worn === 'Yes') { %>
+                                        <span class="badge bg-success">Yes</span>
+                                    <% } else if (violation.Seatbelt_Worn === 'No') { %>
+                                        <span class="badge bg-danger">No</span>
+                                    <% } else { %>
+                                        <span class="badge bg-secondary">N/A</span>
+                                    <% } %>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold text-muted">Towed:</td>
+                                <td>
+                                    <% if (violation.Towed === 'Yes') { %>
+                                        <span class="badge bg-warning">Yes</span>
+                                    <% } else if (violation.Towed === 'No') { %>
+                                        <span class="badge bg-success">No</span>
+                                    <% } else { %>
+                                        <span class="badge bg-secondary">N/A</span>
+                                    <% } %>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold text-muted">Court Appearance:</td>
+                                <td>
+                                    <% if (violation.Court_Appearance_Required === 'Yes') { %>
+                                        <span class="badge bg-warning">Required</span>
+                                    <% } else if (violation.Court_Appearance_Required === 'No') { %>
+                                        <span class="badge bg-success">Not Required</span>
+                                    <% } else { %>
+                                        <span class="badge bg-secondary">N/A</span>
+                                    <% } %>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Payment Information -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h5 class="text-primary mb-3">
+                            <i class="fas fa-credit-card"></i> Payment Information
+                        </h5>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <td class="fw-bold text-muted" width="40%">Fine Paid:</td>
+                                <td>
+                                    <% if (violation.Fine_Paid === 'Yes') { %>
+                                        <span class="badge bg-success">Paid</span>
+                                    <% } else if (violation.Fine_Paid === 'No') { %>
+                                        <span class="badge bg-danger">Unpaid</span>
+                                    <% } else { %>
+                                        <span class="badge bg-warning"><%= violation.Fine_Paid || 'N/A' %></span>
+                                    <% } %>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold text-muted">Payment Method:</td>
+                                <td><%= violation.Payment_Method || 'N/A' %></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Comments -->
+                <% if (violation.Comments) { %>
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h5 class="text-primary mb-3">
+                            <i class="fas fa-comment"></i> Additional Comments
+                        </h5>
+                        <div class="alert alert-info">
+                            <p class="mb-0"><%= violation.Comments %></p>
+                        </div>
+                    </div>
+                </div>
+                <% } %>
+
+                <!-- Action Buttons -->
+                <div class="row">
+                    <div class="col-12">
+                        <hr>
+                        <div class="d-flex gap-2">
+                            <a href="/violations" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to Violations
+                            </a>
+                            <button onclick="window.print()" class="btn btn-outline-primary">
+                                <i class="fas fa-print"></i> Print Details
+                            </button>
+                            <button onclick="exportToPDF()" class="btn btn-outline-success">
+                                <i class="fas fa-download"></i> Export PDF
+                            </button>
+                        </div>
+                        <hr>
+                        <!-- Send Notification Section -->
+                        <div class="mt-4">
+                            <h5 class="text-danger mb-3"><i class="fas fa-bell"></i> Send Notification</h5>
+                            <p class="text-muted mb-2">Prototype demo: always sends alert to predefined owner contact.</p>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Owner Email</label>
+                                    <input type="text" class="form-control" value="shivang072328@gmail.com" disabled>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Owner Phone</label>
+                                    <input type="text" class="form-control" value="+91 8191013531" disabled>
+                                </div>
+                                <div class="col-12">
+                                    <div class="d-flex gap-2">
+                                        <button class="btn btn-warning btn-sm" id="send-alert-btn"
+        data-source="violation-detail"
+        data-violation-id="<%= violation.Violation_ID || violation.violation_id %>"
+        data-license-number="<%= violation.License_Plate_Number %>">
+    <i class="fas fa-exclamation-triangle"></i> Send Unpaid Fine Alert
+</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <small class="text-muted d-block mt-2">Message template is fixed for demonstration.</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function exportToPDF() {
+    // Simple PDF export using browser print functionality
+    // In a production app, you might want to use a library like jsPDF
+    const printContent = document.querySelector('.card').cloneNode(true);
+
+    // Remove action buttons from print
+    const actions = printContent.querySelector('.d-flex');
+    if (actions) actions.remove();
+
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+        <html>
+            <head>
+                <title>Violation Report - ${'<%= violation.Violation_ID %>'}</title>
+                <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+                <style>
+                    body { padding: 20px; }
+                    .badge { font-size: 0.8em; }
+                </style>
+            </head>
+            <body>
+                ${printContent.outerHTML}
+            </body>
+        </html>
+    `);
+    printWindow.document.close();
+    printWindow.print();
+}
+
+// Alert sending logic for violation detail
+async function sendAlertFromDetail() {
+    const btn = document.getElementById('sendAlertBtnDetail');
+    const original = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Sending';
+    try {
+        const violationId = '<%= violation.Violation_ID || violation.violation_id %>';
+        const resp = await fetch('http://localhost:8000/api/alerts/send', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ source: 'violation-detail', violation_id: violationId })
+        });
+        const data = await resp.json();
+        if (data.success) {
+            showDetailToast('Alert sent successfully!');
+        } else {
+            showDetailToast('Alert processed with issues', 'danger');
+            console.error('Alert errors:', data.errors);
+        }
+    } catch (e) {
+        showDetailToast('Alert failed. See console.', 'danger');
+        console.error(e);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = original;
+    }
+}
+
+function showDetailToast(message, type='success') {
+    let container = document.getElementById('toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toast-container';
+        container.className = 'position-fixed top-0 end-0 p-3';
+        document.body.appendChild(container);
+    }
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = `
+        <div class="toast align-items-center text-bg-${type === 'success' ? 'success' : 'danger'} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+          <div class="d-flex">
+            <div class="toast-body">${message}</div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+          </div>
+        </div>`;
+    const toastEl = wrapper.firstElementChild;
+    container.appendChild(toastEl);
+    const toast = new bootstrap.Toast(toastEl, { delay: 4000 });
+    toast.show();
+}
+</script>

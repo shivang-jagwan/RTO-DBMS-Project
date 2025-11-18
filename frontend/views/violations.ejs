@@ -1,0 +1,260 @@
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="mb-2">
+                    <i class="fas fa-list text-primary"></i> Traffic Violations
+                </h1>
+                <p class="text-muted mb-0">Browse and filter traffic violation records</p>
+            </div>
+            <div>
+                <span class="badge bg-primary fs-6">
+                    <%= violations.length %> of <%= Math.ceil(stats.total_violations / pagination.limit) * pagination.limit %> records
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-filter"></i> Filters
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3 mb-3">
+                    <div class="col-md-8">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-search"></i></span>
+                            <input type="text" id="searchInput" class="form-control"
+                                   placeholder="Search violations by ID, type, location, or vehicle..."
+                                   value="<%= filters.search || '' %>">
+                            <button class="btn btn-outline-secondary" type="button" onclick="clearSearch()">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-outline-success" onclick="performSearch()">
+                                <i class="fas fa-search"></i> Search
+                            </button>
+                            <button class="btn btn-outline-secondary" onclick="toggleAdvancedFilters()">
+                                <i class="fas fa-filter"></i> Filters
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Advanced Filters (collapsible) -->
+                <div id="advancedFilters" class="collapse">
+                    <div class="border rounded p-3 mb-3 bg-light">
+                        <form method="GET" action="/violations" class="row g-3">
+                    <div class="col-md-3">
+                        <label for="violation_type" class="form-label">Violation Type</label>
+                        <select name="violation_type" id="violation_type" class="form-select filter-select">
+                            <option value="">All Types</option>
+                            <% Object.keys(stats.top_violations).forEach(type => { %>
+                                <option value="<%= type %>" <%= filters.violation_type === type ? 'selected' : '' %>><%= type %></option>
+                            <% }); %>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="vehicle_type" class="form-label">Vehicle Type</label>
+                        <select name="vehicle_type" id="vehicle_type" class="form-select filter-select">
+                            <option value="">All Types</option>
+                            <% Object.keys(stats.vehicle_types).forEach(type => { %>
+                                <option value="<%= type %>" <%= filters.vehicle_type === type ? 'selected' : '' %>><%= type %></option>
+                            <% }); %>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="location" class="form-label">Location</label>
+                        <select name="location" id="location" class="form-select filter-select">
+                            <option value="">All Locations</option>
+                            <% Object.keys(stats.top_locations).slice(0, 10).forEach(location => { %>
+                                <option value="<%= location %>" <%= filters.location === location ? 'selected' : '' %>><%= location %></option>
+                            <% }); %>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="start_date" class="form-label">Start Date</label>
+                        <input type="date" name="start_date" id="start_date" class="form-control"
+                               value="<%= filters.start_date || '' %>">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="end_date" class="form-label">End Date</label>
+                        <input type="date" name="end_date" id="end_date" class="form-control"
+                               value="<%= filters.end_date || '' %>">
+                    </div>
+                    <div class="col-md-6 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary me-2">
+                            <i class="fas fa-search"></i> Apply Filters
+                        </button>
+                        <a href="/violations" class="btn btn-outline-secondary">
+                            <i class="fas fa-times"></i> Clear Filters
+                        </a>
+                    </div>
+                </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Violations Table -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Violation Records</h5>
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="exportToCSV()">
+                        <i class="fas fa-download"></i> Export CSV
+                    </button>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Type</th>
+                                <th>Fine (₹)</th>
+                                <th>Location</th>
+                                <th>Date</th>
+                                <th>Time</th>
+                                <th>Vehicle Type</th>
+                                <th>Driver Age</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% violations.forEach(violation => { %>
+                                <tr>
+                                    <td>
+                                        <code><%= violation.Violation_ID || violation.violation_id || 'N/A' %></code>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary"><%= violation.Violation_Type || 'N/A' %></span>
+                                    </td>
+                                    <td>
+                                        <strong>₹<%= (violation.Fine_Amount || 0).toLocaleString() %></strong>
+                                    </td>
+                                    <td><%= violation.Location || 'N/A' %></td>
+                                    <td><%= violation.Date || 'N/A' %></td>
+                                    <td><%= violation.Time || 'N/A' %></td>
+                                    <td><%= violation.Vehicle_Type || 'N/A' %></td>
+                                    <td><%= violation.Driver_Age || 'N/A' %></td>
+                                    <td>
+                                        <a href="/violations/<%= violation.Violation_ID || violation.violation_id %>"
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i> View
+                                        </a>
+                                    </td>
+                                </tr>
+                            <% }); %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Pagination -->
+<% if (pagination.hasPrev || pagination.hasNext) { %>
+<div class="row mt-4">
+    <div class="col-12">
+        <nav aria-label="Violation pagination">
+            <ul class="pagination justify-content-center">
+                <% if (pagination.hasPrev) { %>
+                    <li class="page-item">
+                        <a class="page-link pagination-link" href="?page=<%= pagination.page - 1 %>&limit=<%= pagination.limit %>">
+                            <i class="fas fa-chevron-left"></i> Previous
+                        </a>
+                    </li>
+                <% } %>
+
+                <% for (let i = Math.max(1, pagination.page - 2); i <= Math.min(Math.ceil(stats.total_violations / pagination.limit), pagination.page + 2); i++) { %>
+                    <li class="page-item <%= i === pagination.page ? 'active' : '' %>">
+                        <a class="page-link pagination-link" href="?page=<%= i %>&limit=<%= pagination.limit %>"><%= i %></a>
+                    </li>
+                <% } %>
+
+                <% if (pagination.hasNext) { %>
+                    <li class="page-item">
+                        <a class="page-link pagination-link" href="?page=<%= pagination.page + 1 %>&limit=<%= pagination.limit %>">
+                            Next <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                <% } %>
+            </ul>
+        </nav>
+    </div>
+</div>
+<% } %>
+
+<script>
+function exportToCSV() {
+    // Simple CSV export functionality
+    const violations = <%- JSON.stringify(violations) %>;
+    if (violations.length === 0) {
+        alert('No data to export');
+        return;
+    }
+
+    const headers = Object.keys(violations[0]);
+    const csvContent = [
+        headers.join(','),
+        ...violations.map(row => headers.map(header => `"${row[header] || ''}"`).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'traffic_violations.csv';
+    a.click();
+    window.URL.revokeObjectURL(url);
+}
+
+function performSearch() {
+    const searchTerm = document.getElementById('searchInput').value.trim();
+    if (!searchTerm) {
+        alert('Please enter a search term');
+        return;
+    }
+
+    // Redirect to violations page with search parameter
+    window.location.href = `/violations?search=${encodeURIComponent(searchTerm)}`;
+}
+
+function clearSearch() {
+    document.getElementById('searchInput').value = '';
+    // Optionally redirect to clear search
+    window.location.href = '/violations';
+}
+
+function toggleAdvancedFilters() {
+    const filters = document.getElementById('advancedFilters');
+    if (filters) {
+        const bsCollapse = new bootstrap.Collapse(filters, {
+            toggle: true
+        });
+    }
+}
+
+// Handle Enter key in search input
+document.getElementById('searchInput').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        performSearch();
+    }
+});
+</script>

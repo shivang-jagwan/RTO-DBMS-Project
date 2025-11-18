@@ -1,0 +1,193 @@
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">
+            <i class="fas fa-tachometer-alt text-primary"></i> Traffic Violation Dashboard
+        </h1>
+        <p class="text-muted">Real-time analytics and insights for traffic violations</p>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Total Violations</h6>
+                        <h2 class="mb-0"><%= stats.total_violations.toLocaleString() %></h2>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-exclamation-triangle fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Total Fines</h6>
+                        <h2 class="mb-0">₹<%= stats.total_fines.toLocaleString() %></h2>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-rupee-sign fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Avg Fine Amount</h6>
+                        <h2 class="mb-0">₹<%= Math.round(stats.avg_fine_amount).toLocaleString() %></h2>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-calculator fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Active Hotspots</h6>
+                        <h2 class="mb-0"><%= hotspots.length %></h2>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-map-marker-alt fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row mb-4">
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-chart-pie text-primary"></i> Top Violation Types
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="violationsChart" width="400" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-map text-success"></i> Top Locations
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="locationsChart" width="400" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Additional Charts -->
+<div class="row mb-4">
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-clock text-warning"></i> Violations by Hour
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="hourlyChart" width="400" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-car text-info"></i> Vehicle Types
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="vehicleChart" width="400" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Trends Chart -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-chart-line text-danger"></i> Monthly Trends
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="trendsChart" width="800" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <a href="/violations" class="btn btn-outline-primary w-100 mb-2">
+                            <i class="fas fa-list"></i> View All Violations
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="/analytics/hotspots" class="btn btn-outline-success w-100 mb-2">
+                            <i class="fas fa-map-marker-alt"></i> View Hotspots
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="/analytics/trends" class="btn btn-outline-warning w-100 mb-2">
+                            <i class="fas fa-chart-line"></i> View Trends
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="/analytics/repeat-offenders" class="btn btn-outline-danger w-100 mb-2">
+                            <i class="fas fa-user-times"></i> Repeat Offenders
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Chart data
+    const chartData = {
+        violations: <%- JSON.stringify(stats.top_violations) %>,
+        locations: <%- JSON.stringify(stats.top_locations) %>,
+        hourly: <%- JSON.stringify(stats.violations_by_hour) %>,
+        vehicles: <%- JSON.stringify(stats.vehicle_types) %>,
+        trends: {
+            labels: <%- JSON.stringify(trends.dates) %>,
+            data: <%- JSON.stringify(trends.counts) %>
+        }
+    };
+</script>

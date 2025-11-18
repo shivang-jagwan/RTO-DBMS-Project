@@ -1,0 +1,357 @@
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="/analytics">Analytics</a></li>
+                <li class="breadcrumb-item active">Trends</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="mb-2">
+                    <i class="fas fa-chart-line text-info"></i> Violation Trends
+                </h1>
+                <p class="text-muted mb-0">Time-based analysis of traffic violation patterns</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Time Period Selection -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-calendar-alt"></i> Time Period Analysis
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <p class="mb-3">Select the time granularity for trend analysis:</p>
+                        <div class="btn-group w-100" role="group">
+                            <a href="/analytics/trends?time_period=daily"
+                               class="btn <%= timePeriod === 'daily' ? 'btn-primary' : 'btn-outline-primary' %>">
+                                Daily
+                            </a>
+                            <a href="/analytics/trends?time_period=weekly"
+                               class="btn <%= timePeriod === 'weekly' ? 'btn-primary' : 'btn-outline-primary' %>">
+                                Weekly
+                            </a>
+                            <a href="/analytics/trends?time_period=monthly"
+                               class="btn <%= timePeriod === 'monthly' ? 'btn-primary' : 'btn-outline-primary' %>">
+                                Monthly
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="alert alert-info">
+                            <strong>Current Period:</strong> <%= timePeriod.charAt(0).toUpperCase() + timePeriod.slice(1) %>
+                            <br>
+                            <small class="text-muted">
+                                <%= timePeriod === 'daily' ? 'Shows violations per day' :
+                                    timePeriod === 'weekly' ? 'Shows violations per week' :
+                                    'Shows violations per month' %>
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Trends Statistics -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Total Periods</h6>
+                        <h2 class="mb-0"><%= trends.dates.length %></h2>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-calendar fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Peak Violations</h6>
+                        <h2 class="mb-0"><%= trends.counts.length > 0 ? Math.max(...trends.counts) : 0 %></h2>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-arrow-up fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Avg Violations</h6>
+                        <h2 class="mb-0"><%= trends.counts.length > 0 ? Math.round(trends.counts.reduce((a, b) => a + b, 0) / trends.counts.length) : 0 %></h2>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-calculator fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Total Violations</h6>
+                        <h2 class="mb-0"><%= trends.counts.reduce((a, b) => a + b, 0) %></h2>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-chart-line fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Trends Chart -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-chart-area text-primary"></i> Violation Trends Over Time
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="trendsChart" width="800" height="400"></canvas>
+            </div>
+            <div class="card-footer">
+                <div class="row">
+                    <div class="col-md-6">
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle"></i>
+                            <strong>Data Range:</strong> <%= trends.dates.length > 0 ? trends.dates[0] + ' to ' + trends.dates[trends.dates.length - 1] : 'No data available' %>
+                        </small>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <button class="btn btn-sm btn-outline-primary" onclick="exportTrends()">
+                            <i class="fas fa-download"></i> Export Data
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Trends Table -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-table"></i> Detailed Trend Data
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Period</th>
+                                <th>Violations</th>
+                                <th>Change</th>
+                                <th>Trend</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% trends.dates.forEach((date, index) => { %>
+                                <% const count = trends.counts[index]; %>
+                                <% const prevCount = index > 0 ? trends.counts[index - 1] : count; %>
+                                <% const change = count - prevCount; %>
+                                <% const changePercent = prevCount > 0 ? ((change / prevCount) * 100).toFixed(1) : 0; %>
+                                <tr>
+                                    <td><strong><%= date %></strong></td>
+                                    <td>
+                                        <span class="badge bg-primary fs-6"><%= count %></span>
+                                    </td>
+                                    <td>
+                                        <% if (change > 0) { %>
+                                            <span class="text-danger">
+                                                <i class="fas fa-arrow-up"></i> +<%= change %> (<%= changePercent %>%)
+                                            </span>
+                                        <% } else if (change < 0) { %>
+                                            <span class="text-success">
+                                                <i class="fas fa-arrow-down"></i> <%= change %> (<%= Math.abs(changePercent) %>%)
+                                            </span>
+                                        <% } else { %>
+                                            <span class="text-muted">
+                                                <i class="fas fa-minus"></i> No change
+                                            </span>
+                                        <% } %>
+                                    </td>
+                                    <td>
+                                        <% if (change > 0) { %>
+                                            <span class="badge bg-danger">Increasing</span>
+                                        <% } else if (change < 0) { %>
+                                            <span class="badge bg-success">Decreasing</span>
+                                        <% } else { %>
+                                            <span class="badge bg-secondary">Stable</span>
+                                        <% } %>
+                                    </td>
+                                </tr>
+                            <% }); %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Insights Section -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-lightbulb text-warning"></i> Trend Insights
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Peak Periods</h6>
+                        <% if (trends.counts.length > 0) { %>
+                            <% const maxIndex = trends.counts.indexOf(Math.max(...trends.counts)); %>
+                            <p>The highest number of violations occurred on <strong><%= trends.dates[maxIndex] %></strong> with <strong><%= trends.counts[maxIndex] %></strong> violations.</p>
+                        <% } %>
+
+                        <h6 class="mt-3">Overall Trend</h6>
+                        <% if (trends.counts.length > 1) { %>
+                            <% const firstHalf = trends.counts.slice(0, Math.floor(trends.counts.length / 2)); %>
+                            <% const secondHalf = trends.counts.slice(Math.floor(trends.counts.length / 2)); %>
+                            <% const firstAvg = firstHalf.reduce((a, b) => a + b, 0) / firstHalf.length; %>
+                            <% const secondAvg = secondHalf.reduce((a, b) => a + b, 0) / secondHalf.length; %>
+                            <% const trend = secondAvg - firstAvg; %>
+                            <% if (trend > 0) { %>
+                                <p class="text-danger"><i class="fas fa-arrow-up"></i> Violations are increasing over time (avg: <%= Math.round(trend) %> more per period in recent data).</p>
+                            <% } else if (trend < 0) { %>
+                                <p class="text-success"><i class="fas fa-arrow-down"></i> Violations are decreasing over time (avg: <%= Math.round(Math.abs(trend)) %> fewer per period in recent data).</p>
+                            <% } else { %>
+                                <p class="text-muted"><i class="fas fa-minus"></i> Violation trends are stable over time.</p>
+                            <% } %>
+                        <% } %>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Statistical Summary</h6>
+                        <ul class="list-unstyled">
+                            <li><strong>Mean:</strong> <%= trends.counts.length > 0 ? Math.round(trends.counts.reduce((a, b) => a + b, 0) / trends.counts.length) : 0 %> violations per <%= timePeriod.slice(0, -2) %></li>
+                            <li><strong>Median:</strong> <%= trends.counts.length > 0 ? (() => { const sorted = [...trends.counts].sort((a,b) => a-b); const mid = Math.floor(sorted.length / 2); return sorted.length % 2 === 0 ? Math.round((sorted[mid-1] + sorted[mid]) / 2) : sorted[mid]; })() : 0 %> violations</li>
+                            <li><strong>Standard Deviation:</strong> <%= trends.counts.length > 0 ? (() => { const mean = trends.counts.reduce((a, b) => a + b, 0) / trends.counts.length; const variance = trends.counts.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / trends.counts.length; return Math.round(Math.sqrt(variance)); })() : 0 %></li>
+                            <li><strong>Coefficient of Variation:</strong> <%= trends.counts.length > 0 ? (() => { const mean = trends.counts.reduce((a, b) => a + b, 0) / trends.counts.length; const std = Math.sqrt(trends.counts.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / trends.counts.length); return mean > 0 ? (std / mean * 100).toFixed(1) + '%' : 'N/A'; })() : 'N/A' %></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Chart data
+    const trendsChartData = {
+        labels: <%- JSON.stringify(trends.dates) %>,
+        data: <%- JSON.stringify(trends.counts) %>
+    };
+
+    // Initialize chart
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctx = document.getElementById('trendsChart');
+        if (ctx && typeof Chart !== 'undefined') {
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: trendsChartData.labels,
+                    datasets: [{
+                        label: 'Violations',
+                        data: trendsChartData.data,
+                        borderColor: 'rgba(23, 162, 184, 1)',
+                        backgroundColor: 'rgba(23, 162, 184, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: 'rgba(23, 162, 184, 1)',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 6,
+                        pointHoverRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Number of Violations'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Time Period'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+    });
+
+    function exportTrends() {
+        const trends = {
+            dates: <%- JSON.stringify(trends.dates) %>,
+            counts: <%- JSON.stringify(trends.counts) %>
+        };
+
+        const csvContent = [
+            ['Period', 'Violations'].join(','),
+            ...trends.dates.map((date, i) => [date, trends.counts[i]].join(','))
+        ].join('\n');
+
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `violation_trends_${'<%= timePeriod %>'}.csv`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+    }
+</script>

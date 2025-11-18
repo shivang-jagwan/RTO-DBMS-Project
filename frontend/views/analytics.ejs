@@ -1,0 +1,253 @@
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">
+            <i class="fas fa-chart-bar text-success"></i> Analytics & Insights
+        </h1>
+        <p class="text-muted">Advanced analytics and hotspot analysis for traffic violations</p>
+    </div>
+</div>
+
+<!-- Analytics Cards -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card bg-warning text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Hotspots Detected</h6>
+                        <h2 class="mb-0"><%= hotspots.length %></h2>
+                        <small>High-violation areas</small>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-map-marker-alt fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-danger text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Repeat Offenders</h6>
+                        <h2 class="mb-0"><%= repeatOffenders.length %></h2>
+                        <small>3+ violations each</small>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-user-times fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-info text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Data Points</h6>
+                        <h2 class="mb-0"><%= trends.dates.length %></h2>
+                        <small>Time periods analyzed</small>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-calendar-alt fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hotspots Table -->
+<div class="row mb-4">
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-map-marker-alt text-warning"></i> Top Violation Hotspots
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Location</th>
+                                <th>Violation Count</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% hotspots.slice(0, 10).forEach(hotspot => { %>
+                                <tr>
+                                    <td>
+                                        <strong><%= hotspot.location %></strong>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-danger"><%= hotspot.count %></span>
+                                    </td>
+                                    <td>
+                                        <% if (hotspot.count > 100) { %>
+                                            <span class="badge bg-danger">Critical</span>
+                                        <% } else if (hotspot.count > 50) { %>
+                                            <span class="badge bg-warning">High</span>
+                                        <% } else { %>
+                                            <span class="badge bg-info">Moderate</span>
+                                        <% } %>
+                                    </td>
+                                </tr>
+                            <% }); %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer text-center">
+                <a href="/analytics/hotspots" class="btn btn-outline-primary">
+                    <i class="fas fa-external-link-alt"></i> View All Hotspots
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Repeat Offenders Table -->
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-user-times text-danger"></i> Repeat Offenders
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>License Number</th>
+                                <th>Name</th>
+                                <th>Violations</th>
+                                <th>Total Fines</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% repeatOffenders.slice(0, 10).forEach(offender => { %>
+                                <tr>
+                                    <td>
+                                        <code><%= offender.license_number %></code>
+                                    </td>
+                                    <td><%= offender.driver_name || 'Unknown' %></td>
+                                    <td>
+                                        <span class="badge bg-danger"><%= offender.violation_count %></span>
+                                    </td>
+                                    <td>
+                                        <strong>₹<%= offender.total_fines.toLocaleString() %></strong>
+                                    </td>
+                                </tr>
+                            <% }); %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer text-center">
+                <a href="/analytics/repeat-offenders" class="btn btn-outline-danger">
+                    <i class="fas fa-external-link-alt"></i> View All Offenders
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Trends Chart -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-chart-line text-info"></i> Violation Trends Over Time
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="trendsChart" width="800" height="300"></canvas>
+            </div>
+            <div class="card-footer text-center">
+                <a href="/analytics/trends" class="btn btn-outline-info">
+                    <i class="fas fa-external-link-alt"></i> View Detailed Trends
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Analysis Tools</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <a href="/analytics/hotspots" class="btn btn-outline-warning w-100 mb-2">
+                            <i class="fas fa-map-marker-alt"></i> Hotspot Analysis
+                        </a>
+                    </div>
+                    <div class="col-md-4">
+                        <a href="/analytics/trends" class="btn btn-outline-info w-100 mb-2">
+                            <i class="fas fa-chart-line"></i> Trend Analysis
+                        </a>
+                    </div>
+                    <div class="col-md-4">
+                        <a href="/analytics/repeat-offenders" class="btn btn-outline-danger w-100 mb-2">
+                            <i class="fas fa-user-times"></i> Offender Analysis
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script id="trends-data" type="application/json"><%- JSON.stringify({ dates: trends.dates, counts: trends.counts }) %></script>
+
+<script>
+    // Parse trends data from JSON script
+    const trendsJson = JSON.parse(document.getElementById('trends-data').textContent);
+    
+    // Chart data for trends
+    const trendsData = {
+        labels: trendsJson.dates,
+        data: trendsJson.counts
+    };
+
+    // Initialize trends chart
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctx = document.getElementById('trendsChart');
+        if (ctx && typeof Chart !== 'undefined') {
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: trendsData.labels,
+                    datasets: [{
+                        label: 'Monthly Violations',
+                        data: trendsData.data,
+                        borderColor: 'rgba(23, 162, 184, 1)',
+                        backgroundColor: 'rgba(23, 162, 184, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+    });
+</script>

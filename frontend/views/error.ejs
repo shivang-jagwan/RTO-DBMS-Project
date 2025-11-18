@@ -1,0 +1,25 @@
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card border-warning">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-exclamation-circle fa-4x text-warning mb-4"></i>
+                <h1 class="card-title text-warning">Oops! Something went wrong</h1>
+                <p class="card-text lead"><%= message %></p>
+                <% if (typeof error !== 'undefined' && error) { %>
+                    <div class="alert alert-info mt-4">
+                        <h6>Error Details:</h6>
+                        <pre class="mb-0"><code><%= JSON.stringify(error, null, 2) %></code></pre>
+                    </div>
+                <% } %>
+                <div class="mt-4">
+                    <a href="/" class="btn btn-primary me-2">
+                        <i class="fas fa-home"></i> Go to Dashboard
+                    </a>
+                    <button onclick="window.location.reload()" class="btn btn-outline-secondary">
+                        <i class="fas fa-refresh"></i> Try Again
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
