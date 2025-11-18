@@ -1,5 +1,5 @@
 // Serverless API for repeat offenders
-export default function handler(req, res) {
+module.exports = function handler(req, res) {
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -16,25 +16,32 @@ export default function handler(req, res) {
 
   const mockOffenders = [
     {
-      license_number: "DL01AB1234",
+      vehicle_number: "MH12AB1234",
+      driver_license: "DL1234567890",
       violation_count: 8,
-      total_fines: 12000,
-      last_violation_date: "2025-11-15",
-      most_common_violation: "Speeding"
+      latest_date: "2025-11-18",
+      total_fines: 15000
     },
     {
-      license_number: "DL02CD5678",
+      vehicle_number: "DL03CD5678",
+      driver_license: "DL0987654321",
       violation_count: 6,
-      total_fines: 9000,
-      last_violation_date: "2025-11-12",
-      most_common_violation: "Signal Violation"
+      latest_date: "2025-11-16",
+      total_fines: 25000
     },
     {
-      license_number: "DL03EF9012",
+      vehicle_number: "KA05EF9012",
+      driver_license: "DL5432167890",
       violation_count: 5,
-      total_fines: 7500,
-      last_violation_date: "2025-11-10",
-      most_common_violation: "Parking"
+      latest_date: "2025-11-17",
+      total_fines: 12500
+    },
+    {
+      vehicle_number: "TN09GH3456",
+      driver_license: "DL6789054321",
+      violation_count: 4,
+      latest_date: "2025-11-15",
+      total_fines: 8000
     }
   ].filter(offender => offender.violation_count >= minViolations);
 

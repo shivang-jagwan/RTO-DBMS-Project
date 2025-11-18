@@ -1,26 +1,21 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "frontend/server.js",
-      "use": "@vercel/node",
-      "config": {
-        "maxLambdaSize": "15mb"
-      }
-    }
-  ],
   "routes": [
     {
       "src": "/api/(.*)",
       "dest": "/api/$1"
     },
     {
-      "src": "/frontend/public/(.*)",
-      "dest": "/frontend/public/$1"
+      "src": "/css/(.*)",
+      "dest": "/frontend/public/css/$1"
+    },
+    {
+      "src": "/js/(.*)",
+      "dest": "/frontend/public/js/$1"
     },
     {
       "src": "/(.*)",
-      "dest": "/frontend/server.js"
+      "dest": "/frontend/index.html"
     }
   ],
   "env": {

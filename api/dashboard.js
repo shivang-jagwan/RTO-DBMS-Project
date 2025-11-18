@@ -1,6 +1,9 @@
 // Serverless API for dashboard data
 const mockData = {
   totalViolations: 4000,
+  pendingFines: 2500,
+  paidFines: 1500,
+  totalAmount: 12500000,
   lastUpdated: "2025-11-18",
   violationTypes: {
     "Speeding": 50,
@@ -26,7 +29,7 @@ const mockData = {
   message: "Data loaded successfully - 4000 violations found"
 };
 
-export default function handler(req, res) {
+module.exports = function handler(req, res) {
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -44,4 +47,4 @@ export default function handler(req, res) {
     res.setHeader('Allow', ['GET']);
     res.status(405).end(`Method ${req.method} Not Allowed`);
   }
-}
+};

@@ -1,5 +1,5 @@
 // Serverless API for violation hotspots
-export default function handler(req, res) {
+module.exports = function handler(req, res) {
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -13,25 +13,28 @@ export default function handler(req, res) {
 
   const mockHotspots = [
     {
-      location: "Main Street & 1st Ave",
-      latitude: 28.6139,
-      longitude: 77.2090,
-      violation_count: 45,
-      cluster_size: 3
+      location: "Mumbai Highway",
+      violation_count: 125,
+      most_common_type: "Speeding",
+      total_fines: 250000
     },
     {
-      location: "Highway 101 & Oak Rd",
-      latitude: 28.7041,
-      longitude: 77.1025,
-      violation_count: 32,
-      cluster_size: 2
+      location: "Delhi Central",
+      violation_count: 98,
+      most_common_type: "Signal Jump",
+      total_fines: 490000
     },
     {
-      location: "City Center Plaza",
-      latitude: 28.5355,
-      longitude: 77.3910,
-      violation_count: 28,
-      cluster_size: 2
+      location: "Bangalore Ring Road",
+      violation_count: 87,
+      most_common_type: "Wrong Lane", 
+      total_fines: 130500
+    },
+    {
+      location: "Chennai Beach Road",
+      violation_count: 64,
+      most_common_type: "No Helmet",
+      total_fines: 64000
     }
   ];
 
