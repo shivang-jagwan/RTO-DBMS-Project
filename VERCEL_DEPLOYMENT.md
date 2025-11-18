@@ -25,7 +25,7 @@ git commit -m "Initial commit - Traffic Violation Dashboard"
 
 3. **Push to GitHub:**
 ```bash
-git remote add origin https://github.com/YOUR_USERNAME/traffic-violation-dashboard.git
+git remote add origin https://github.com/shivang-jagwan/RTO-DBMS-Project.git
 git branch -M main
 git push -u origin main
 ```
